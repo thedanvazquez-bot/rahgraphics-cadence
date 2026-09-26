@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>rahGraphics — Invoice Follow-Up Cadence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:   #111111;
+    --blue:    #00AEEF;
+    --gray-bg: #F2F2F2;
+    --line:    #E3E3E3;
+    --white:   #FFFFFF;
+    --ink:     #222222;
+    --muted:   #6B6B6B;
+    --warn:    #D98A00;
+    --stop:    #C0392B;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+    background: var(--gray-bg);
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 32px 18px 50px;
+  }
+  .wrap { max-width: 1220px; margin: 0 auto; }
+
+  /* ---- Brand header (matches rahGraphics letterhead) ---- */
+  .brand-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--black);
+    border-radius: 10px;
+    padding: 22px 30px;
+    margin-bottom: 26px;
+  }
+  .logo { font-size: 26px; font-weight: 800; color: var(--white); letter-spacing: -0.5px; }
+  .tagline-brand { margin-top: 4px; font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--blue); text-transform: uppercase; }
+  .doc-meta { text-align: right; color: var(--white); }
+  .doc-meta .title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .doc-meta .sub { font-size: 11.5px; color: #B9B9B9; }
+
+  /* ---- Page title ---- */
+  .page-title {
+    font-size: 30px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+    color: var(--black);
+  }
+  .page-sub { font-size: 14px; color: var(--muted); font-style: italic; margin-top: 4px; }
+  .rule { height: 3px; background: var(--blue); width: 70px; margin: 12px 0 24px; border-radius: 2px; }
+
+  /* ---- Legend ---- */
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 26px;
+  }
+  .legend .label { font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); margin-right: 4px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 12px; border-radius: 999px;
+    border: 1.5px solid; font-size: 11.5px; font-weight: 700;
+  }
+  .pill .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .pill.email  { color: var(--black); border-color: var(--black); }
+  .pill.email .dot  { background: var(--black); }
+  .pill.sms    { color: var(--blue);  border-color: var(--blue); }
+  .pill.sms .dot    { background: var(--blue); }
+  .pill.phone  { color: #007096; border-color: #007096; }
+  .pill.phone .dot  { background: #007096; }
+  .pill.review { color: var(--warn);  border-color: var(--warn); }
+  .pill.review .dot { background: var(--warn); }
+  .pill.stop   { color: var(--stop);  border-color: var(--stop); }
+  .pill.stop .dot   { background: var(--stop); }
+  .pill.internal { color: var(--muted); border-color: var(--muted); border-style: dashed; }
+  .pill.internal .dot { background: var(--muted); }
+
+  /* ---- Section headers, docx-style ---- */
+  .section-h {
+    font-size: 18px; font-weight: 800; text-transform: uppercase;
+    color: var(--black); margin: 40px 0 4px;
+  }
+  .section-rule { height: 3px; background: var(--blue); margin: 0 0 20px; border-radius: 2px; }
+
+  /* ---- Flow ---- */
+  .flow {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 12px;
+  }
+  .stage {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-top: 4px solid var(--black);
+    border-radius: 8px;
+    padding: 14px 12px;
+    display: flex; flex-direction: column;
+    min-height: 226px;
+    position: relative;
+  }
+  .stage[data-tier="firm"] { border-top-color: var(--warn); }
+  .stage[data-tier="hard"] { border-top-color: var(--stop); }
+  .stage[data-tier="int"]  { border-top-color: var(--muted); border-style: dashed; }
+
+  .stage::after {
+    content: "";
+    position: absolute; top: 50%; right: -13px;
+    width: 8px; height: 8px;
+    border-top: 2px solid var(--black); border-right: 2px solid var(--black);
+    transform: translateY(-50%) rotate(45deg);
+  }
+  .stage[data-tier="firm"]::after { border-color: var(--warn); }
+  .stage[data-tier="hard"]::after { border-color: var(--stop); }
+  .stage:last-child::after { content: none; }
+
+  .stage-num { font-size: 9.5px; font-weight: 800; letter-spacing: 1.5px; color: var(--muted); text-transform: uppercase; }
+  .stage-title { font-size: 13.5px; font-weight: 800; color: var(--black); margin: 4px 0 7px; line-height: 1.25; }
+  .day {
+    display: inline-block; align-self: flex-start;
+    background: var(--black); color: var(--white);
+    font-size: 10.5px; font-weight: 700; letter-spacing: 0.5px;
+    padding: 2px 8px; border-radius: 4px; margin-bottom: 8px;
+  }
+  .day.warn { background: var(--warn); }
+  .day.stop { background: var(--stop); }
+  .channels { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .ch { font-size: 9.5px; padding: 2px 7px; border-radius: 3px; font-weight: 700; }
+  .ch.email { background: var(--gray-bg); color: var(--black); }
+  .ch.sms   { background: rgba(0,174,239,0.12); color: var(--blue); }
+  .ch.phone { background: rgba(0,112,150,0.12); color: #007096; }
+  .ch.mail  { background: rgba(192,57,43,0.10); color: var(--stop); }
+  .goal { font-size: 10.5px; color: var(--ink); margin-bottom: 6px; }
+  .tone { font-size: 10px; color: var(--muted); font-style: italic; margin-top: auto; padding-top: 8px; border-top: 1px dashed var(--line); }
+
+  /* ---- Pause / internal panels, docx table style ---- */
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px 26px;
+    margin-top: 26px;
+  }
+  .panel h3 { font-size: 15px; font-weight: 800; color: var(--black); text-transform: uppercase; margin-bottom: 6px; }
+  .panel .sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .pause-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .pause-card { background: var(--gray-bg); border-left: 3px solid var(--blue); border-radius: 6px; padding: 11px 13px; }
+  .pause-card .name { font-size: 10.5px; font-weight: 800; color: var(--black); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 4px; }
+  .pause-card .act { font-size: 10.5px; color: var(--muted); line-height: 1.4; }
+
+  /* ---- Footer, matches docx footer exactly ---- */
+  .footer {
+    margin-top: 40px; padding-top: 18px; border-top: 1px solid var(--line);
+    text-align: center; font-size: 12px; color: var(--muted);
+  }
+  .footer b { color: var(--black); }
+
+  @media (max-width: 1100px) {
+    .flow { grid-template-columns: repeat(4, 1fr); }
+    .stage::after { display: none; }
+    .pause-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 620px) {
+    .flow { grid-template-columns: 1fr; }
+    .pause-grid { grid-template-columns: 1fr; }
+    .brand-bar { flex-direction: column; gap: 14px; text-align: center; }
+    .doc-meta { text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand-bar">
+    <div>
+      <div class="logo">rahGraphics</div>
+      <div class="tagline-brand">Think. Speak. Evolve.</div>
+    </div>
+    <div class="doc-meta">
+      <div class="title">Invoice Follow-Up Cadence</div>
+      <div class="sub">Net 30 Terms · 8-Stage Sequence · Owner: Sarah Frizzell</div>
+    </div>
+  </div>
+
+  <div class="page-title">Invoice Follow-Up Cadence</div>
+  <div class="page-sub">Design is the evidence. Strategy is the advantage.</div>
+  <div class="rule"></div>
+
+  <div class="legend">
+    <span class="label">Channels</span>
+    <span class="pill email"><span class="dot"></span>Email</span>
+    <span class="pill sms"><span class="dot"></span>SMS</span>
+    <span class="pill phone"><span class="dot"></span>Phone</span>
+    <span class="pill review"><span class="dot"></span>Human review required</span>
+    <span class="pill stop"><span class="dot"></span>Final / escalation</span>
+    <span class="pill internal"><span class="dot"></span>Internal only</span>
+  </div>
+
+  <div class="section-h">Cadence Flow</div>
+  <div class="section-rule"></div>
+
+  <div class="flow">
+    <div class="stage" data-tier="soft">
+      <div class="stage-num">Stage 0</div>
+      <div class="stage-title">Invoice Sent</div>
+      <span class="day">Day 0</span>
+      <div class="channels"><span class="ch email">EMAIL</span></div>
+      <div class="goal">Establish record. Send invoice + project summary + payment link.</div>
+      <div class="tone">Tone: neutral, professional</div>
+    </div>
+    <div class="stage" data-tier="soft">
+      <div class="stage-num">Stage 1</div>
+      <div class="stage-title">Pre-Due Reminder</div>
+      <span class="day">Day -3</span>
+      <div class="channels"><span class="ch email">EMAIL</span></div>
+      <div class="goal">Helpful heads-up. Remove friction early (PO, W-9, remit-to).</div>
+      <div class="tone">Tone: warm, helpful</div>
+    </div>
+    <div class="stage" data-tier="soft">
+      <div class="stage-num">Stage 2</div>
+      <div class="stage-title">Due-Date Reminder</div>
+      <span class="day">Day 0</span>
+      <div class="channels"><span class="ch email">EMAIL</span></div>
+      <div class="goal">Same-day prompt. Make payment path obvious.</div>
+      <div class="tone">Tone: friendly, brief</div>
+    </div>
+    <div class="stage" data-tier="firm">
+      <div class="stage-num">Stage 3</div>
+      <div class="stage-title">First Overdue</div>
+      <span class="day warn">Day +3</span>
+      <div class="channels"><span class="ch email">EMAIL</span></div>
+      <div class="goal">Assume oversight. Ask for the blocker (AP queue, PO, question).</div>
+      <div class="tone">Tone: polite, assumes oversight</div>
+    </div>
+    <div class="stage" data-tier="firm">
+      <div class="stage-num">Stage 4</div>
+      <div class="stage-title">Firm Follow-Up</div>
+      <span class="day warn">Day +7</span>
+      <div class="channels"><span class="ch email">EMAIL</span><span class="ch sms">SMS</span></div>
+      <div class="goal">Ask for a payment date. Three numbered options to make reply easy.</div>
+      <div class="tone">Tone: direct, asks for date</div>
+    </div>
+    <div class="stage" data-tier="hard">
+      <div class="stage-num">Stage 5</div>
+      <div class="stage-title">Manager Escalation</div>
+      <span class="day stop">Day +14</span>
+      <div class="channels"><span class="ch email">EMAIL</span><span class="ch phone">PHONE</span></div>
+      <div class="goal">Reference prior reminders and Net 30 terms. Two clean paths forward.</div>
+      <div class="tone">Tone: firm — human review required</div>
+    </div>
+    <div class="stage" data-tier="hard">
+      <div class="stage-num">Stage 6</div>
+      <div class="stage-title">Formal Final Notice</div>
+      <span class="day stop">Day +30</span>
+      <div class="channels"><span class="ch email">EMAIL</span><span class="ch sms">SMS</span><span class="ch phone">PHONE</span></div>
+      <div class="goal">State the +5 day deadline. Pause new work if silent.</div>
+      <div class="tone">Tone: formal — human review required</div>
+    </div>
+    <div class="stage" data-tier="hard">
+      <div class="stage-num">Stage 7</div>
+      <div class="stage-title">Pre-Collections Demand</div>
+      <span class="day stop">Day +45</span>
+      <div class="channels"><span class="ch email">EMAIL</span><span class="ch mail">CERT MAIL</span></div>
+      <div class="goal">Formal demand. State consequence and costs.</div>
+      <div class="tone">Tone: final demand — human review required</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>Stage 8 — Internal Collections Review <span style="color: var(--muted); font-weight:600; text-transform:none;">(Day +60)</span></h3>
+    <div class="sub" style="margin-bottom:0;">No customer email at this stage. Decision task only: refer to collections agency, write off the balance, or hold. New project work paused until cleared.</div>
+  </div>
+
+  <div class="panel">
+    <h3>Pause Triggers — Stop the Cadence</h3>
+    <div class="sub">If the customer replies with any of these, set the row's Pause Status and switch to the matching exception template. Do not keep sending standard reminders alongside an exception flow.</div>
+    <div class="pause-grid">
+      <div class="pause-card"><div class="name">Dispute</div><div class="act">Use Dispute / Resolution template. Ask for line item + concern. Reply within 2 business days.</div></div>
+      <div class="pause-card"><div class="name">Missing PO</div><div class="act">Use AP Process / PO Required template. Reissue invoice with PO ref.</div></div>
+      <div class="pause-card"><div class="name">Promised Date</div><div class="act">Use Payment Promise Confirmation. Single follow-up at the promised date only.</div></div>
+      <div class="pause-card"><div class="name">Partial Payment</div><div class="act">Use Partial Payment / Balance. Re-enter cadence for remaining balance.</div></div>
+      <div class="pause-card"><div class="name">Wrong Contact</div><div class="act">Forward to correct AP contact. Log new contact in Notes column.</div></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <b>rahGraphics</b> &nbsp;|&nbsp; Brand Identity &amp; Creative Strategy Studio &nbsp;|&nbsp; Studio@rahGraphics.com · rahgraphics.com
+  </div>
+</div>
+</body>
+</html>
