@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>rahGraphics — Operating System Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#1F3A5F; --teal:#2BA9C9; --green:#1FA85C; --amber:#E08A1E; --red:#C0392B;
+    --bg:#F4F7FA; --line:#C9D4DF; --ink:#222222; --muted:#5C6675; --dark:#111111; --white:#fff;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:'Inter','Helvetica Neue',Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+  @media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12161c;--white:#1a2029;--line:#2c3542;--ink:#e7ecf2;--muted:#9aa7b5}}
+  :root[data-theme="dark"]{--bg:#12161c;--white:#1a2029;--line:#2c3542;--ink:#e7ecf2;--muted:#9aa7b5}
+
+  header.top{background:var(--navy);color:#fff;padding:26px 24px;position:sticky;top:0;z-index:20;
+    padding-top:calc(26px + env(safe-area-inset-top,0px));}
+  .top-inner{max-width:1300px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+  .word{font-size:22px;font-weight:800;letter-spacing:-.5px}
+  .word span{color:var(--teal)}
+  .sub{font-size:12.5px;color:#C9D9E8;margin-top:2px;max-width:520px}
+  .toggle-wrap{display:flex;align-items:center;gap:10px;font-size:12px;color:#C9D9E8;font-weight:600}
+  #detailToggle{width:42px;height:24px;border-radius:14px;background:rgba(255,255,255,.25);border:none;position:relative;cursor:pointer}
+  #detailToggle::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+  #detailToggle.on{background:var(--teal)}
+  #detailToggle.on::after{left:21px}
+
+  main{max-width:1300px;margin:0 auto;padding:28px 20px 80px}
+  .stage-block{background:var(--white);border:1px solid var(--line);border-radius:14px;padding:24px;margin-bottom:22px}
+  .stage-head{display:flex;align-items:baseline;gap:10px;margin-bottom:16px}
+  .stage-num{font-size:11px;font-weight:800;color:var(--teal);letter-spacing:1.5px}
+  .stage-title{font-size:19px;font-weight:800;color:var(--navy);text-transform:uppercase;letter-spacing:.3px}
+  .stage-desc{font-size:12.5px;color:var(--muted);margin:-8px 0 16px}
+
+  .node{cursor:pointer;border:1.5px solid var(--line);border-radius:10px;background:var(--white);padding:10px 13px;transition:.15s;position:relative}
+  .node:hover{border-color:var(--teal);box-shadow:0 2px 10px rgba(43,169,201,.18);transform:translateY(-1px)}
+  .node .t{font-size:12.5px;font-weight:700;color:var(--navy)}
+  .node .s{font-size:10.5px;color:var(--muted);margin-top:3px}
+  body:not(.detail-on) .node .s{display:none}
+
+  /* Stage 1 grid */
+  .lead-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+  /* pipeline row */
+  .pipeline-row{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px}
+  .pipeline-row .node{flex:0 0 128px;text-align:center}
+  .arrow{align-self:center;color:var(--line);font-size:16px;flex:0 0 auto}
+  .pipeline-row .arrow{color:var(--teal)}
+
+  .subrow-label{font-size:10.5px;font-weight:800;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin:16px 0 8px}
+  .tools-row,.pause-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+  .pause-row .node{border-left:3px solid var(--amber);border-radius:6px}
+
+  /* email/invoice/nurture strips */
+  .strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:10px}
+  .strip .node{flex:0 0 168px}
+  .strip .node .badge{display:inline-block;background:var(--navy);color:#fff;font-size:9.5px;font-weight:700;border-radius:4px;padding:1px 6px;margin-bottom:5px}
+  .strip.invoice .node .badge{background:var(--teal)}
+  .strip.invoice .node[data-tier="hard"] .badge{background:var(--red)}
+  .strip.invoice .node[data-tier="firm"] .badge{background:var(--amber)}
+  .strip.nurture .node .badge{background:var(--green)}
+
+  .path-label{font-size:13px;font-weight:800;color:var(--navy);margin:20px 0 2px}
+  .path-label small{display:block;font-weight:500;color:var(--muted);font-size:11px;margin-top:2px}
+
+  .loop-note{font-size:11px;color:var(--muted);font-style:italic;margin-top:6px}
+  .branch-back{font-size:11.5px;color:var(--green);font-weight:700;margin-top:8px;cursor:pointer}
+  .branch-back:hover{text-decoration:underline}
+
+  /* outcomes */
+  .outcomes-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+  .outcomes-grid .node{border-color:var(--green)}
+
+  /* callouts */
+  .callouts{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:26px 0}
+  .callout{background:var(--white);border-left:4px solid var(--navy);border-radius:8px;padding:16px 18px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+  .callout h4{font-size:12.5px;font-weight:800;color:var(--navy);margin-bottom:6px}
+  .callout p{font-size:11.5px;color:var(--muted);font-style:italic;line-height:1.5}
+
+  footer{text-align:center;padding:24px;color:var(--muted);font-size:12px;border-top:1px solid var(--line);margin-top:10px}
+  footer b{color:var(--navy)}
+
+  /* panel */
+  #overlay{position:fixed;inset:0;background:rgba(17,17,17,.35);opacity:0;pointer-events:none;transition:.2s;z-index:29}
+  #overlay.open{opacity:1;pointer-events:auto}
+  #panel{position:fixed;top:0;right:0;height:100%;width:360px;max-width:88vw;background:var(--white);
+    box-shadow:-8px 0 24px rgba(0,0,0,.15);transform:translateX(100%);transition:.25s;z-index:30;
+    padding:24px;overflow-y:auto;padding-top:calc(24px + env(safe-area-inset-top,0px));
+    padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));}
+  #panel.open{transform:translateX(0)}
+  #panel .close{float:right;background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer}
+  #panel h2{font-size:17px;font-weight:800;color:var(--navy);margin:6px 0 4px;padding-right:30px}
+  #panel .status{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;margin-bottom:14px}
+  .status.live{background:rgba(31,168,92,.15);color:var(--green)}
+  .status.draft{background:rgba(224,138,30,.15);color:var(--amber)}
+  .status.planned{background:rgba(92,102,117,.15);color:var(--muted)}
+  #panel .row{margin-bottom:12px}
+  #panel .row .k{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+  #panel .row .v{font-size:13px;color:var(--ink)}
+  #panel .src{margin-top:16px;font-size:11.5px;color:var(--teal);font-weight:600}
+
+  @media(max-width:900px){.lead-grid{grid-template-columns:repeat(2,1fr)}.callouts{grid-template-columns:1fr}}
+  @media(max-width:600px){.lead-grid{grid-template-columns:1fr}.stage-title{font-size:16px}.top-inner{flex-direction:column;align-items:flex-start}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="top-inner">
+  <div><div class="word">rah<span>Graphics</span> — Operating System Map</div>
+  <div class="sub">How the lead-to-client CRM, the invoice cadence, and the value-driven nurture layer work together.</div></div>
+  <div class="toggle-wrap"><span>Detail mode</span><button id="detailToggle" onclick="toggleDetail()"></button></div>
+</div></header>
+
+<main>
+
+  <div class="stage-block">
+    <div class="stage-head"><span class="stage-num">STAGE 1</span><span class="stage-title">Lead Capture</span></div>
+    <div class="stage-desc">The front door. Four ways a contact enters the system — all flow into the CRM.</div>
+    <div class="lead-grid" id="leadGrid"></div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-head"><span class="stage-num">STAGE 2</span><span class="stage-title">CRM — Lead Lifecycle Pipeline</span></div>
+    <div class="stage-desc">The heart of the system. Every contact lives in exactly one of 11 stages.</div>
+    <div class="pipeline-row" id="pipelineRow"></div>
+    <div class="subrow-label">Views &amp; Integrations</div>
+    <div class="tools-row" id="toolsRow"></div>
+    <div class="subrow-label">Pause Triggers — stop the cadence, switch to exception template</div>
+    <div class="pause-row" id="pauseRowCrm"></div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-head"><span class="stage-num">STAGE 3</span><span class="stage-title">Email Communication Layer</span></div>
+    <div class="stage-desc">Three parallel paths flow out of the CRM.</div>
+
+    <div class="path-label">Path A — Active Communications <small>10 core emails, in trigger order</small></div>
+    <div class="strip" id="emailStrip"></div>
+
+    <div class="path-label">Path B — Invoice Cadence <small>downstream of Won</small></div>
+    <div class="strip invoice" id="invoiceStrip"></div>
+    <div class="subrow-label">Pause Triggers — invoice cadence</div>
+    <div class="pause-row" id="pauseRowInvoice"></div>
+
+    <div class="path-label">Path C — Value-Adding Nurture <small>"Marketing in Motion" — 12-week campaign</small></div>
+    <div class="strip nurture" id="nurtureStrip"></div>
+    <div class="loop-note">Weekly send → engagement → re-entry into nurture loop, recurring.</div>
+    <div class="branch-back" onclick="openPanel('inquiry')">↩ When a nurture reader inquires → re-enters CRM at "Inquiry" (Stage 2)</div>
+  </div>
+
+  <div class="stage-block">
+    <div class="stage-head"><span class="stage-num">STAGE 4</span><span class="stage-title">Outcomes — downstream of Won</span></div>
+    <div class="outcomes-grid" id="outcomesGrid"></div>
+  </div>
+
+  <div class="callouts">
+    <div class="callout"><h4>Pause triggers stop the cadence.</h4><p>Every pipeline stage has a pause trigger that, when activated, switches the system from auto-cadence to a specific exception template. The architecture is: assume oversight before hostility, make the next move obvious, give easy ways to respond.</p></div>
+    <div class="callout"><h4>The state machine is the source of truth.</h4><p>Every contact lives in exactly one state. State determines what communication happens next, what the silence threshold is, and who owns the next action. When in doubt: state first, message second.</p></div>
+    <div class="callout"><h4>No chasing. No fake scarcity.</h4><p>Follow-ups are professional persistence followed by a clean close — never nervous checking-in, never fake urgency. Real scarcity (studio availability) is the only scarcity. Real close-loops are the only close-loops.</p></div>
+  </div>
+
+</main>
+
+<footer><b>rahGraphics</b> &nbsp;|&nbsp; Design is the evidence. Strategy is the advantage.</footer>
+
+<div id="overlay" onclick="closePanel()"></div>
+<div id="panel">
+  <button class="close" onclick="closePanel()">✕</button>
+  <div id="panelBody"></div>
+</div>
+
+<script>
+const D = {
+  wi:{t:"Website Inquiry Form",type:"Lead Source",owner:"rahgraphics.com",trigger:"Visitor submits form",status:"live",note:"Existing on rahgraphics.com. Lands directly in CRM as new Contact."},
+  ref:{t:"Referral Introduction",type:"Lead Source",owner:"Alicia / BNI / Clients",trigger:"Warm intro made",status:"live",note:"Enters CRM as Contacted (Warm) via Email 03."},
+  org:{t:"Organic Meetings",type:"Lead Source",owner:"Sarah / Daniela",trigger:"Event, Understory, community contact",status:"live",note:"Logged manually into CRM after the interaction."},
+  out:{t:"Outbound Observation",type:"Lead Source",owner:"Sarah / Daniela",trigger:"Business identified as a fit",status:"live",note:"Enters CRM as Qualified Outbound via Email 02."},
+
+  p1:{t:"Contact",type:"Pipeline Stage",owner:"Sarah",trigger:"New lead created",status:"live"},
+  p2:{t:"Contacted (Warm)",type:"Pipeline Stage",owner:"Sarah",trigger:"Warm intro or Email 01/03 sent",status:"live"},
+  p3:{t:"Responded",type:"Pipeline Stage",owner:"Sarah",trigger:"Contact replies",status:"live"},
+  p4:{t:"Qualified Outbound",type:"Pipeline Stage",owner:"Sarah",trigger:"Email 02 sent",status:"live"},
+  p5:{t:"Inquiry",type:"Pipeline Stage",owner:"Sarah",trigger:"Inquiry received (form, nurture, or direct)",status:"live"},
+  p6:{t:"Discovery Booked",type:"Pipeline Stage",owner:"Sarah",trigger:"Meeting scheduler booking",status:"live"},
+  p7:{t:"Discovery Complete",type:"Pipeline Stage",owner:"Sarah",trigger:"Call completed",status:"live"},
+  p8:{t:"Proposal Sent",type:"Pipeline Stage",owner:"Sarah",trigger:"Email 08 sent",status:"live"},
+  p9:{t:"Awaiting Client Info",type:"Pipeline Stage",owner:"Sarah",trigger:"Proposal accepted, info needed",status:"live"},
+  p10:{t:"Decision Pending",type:"Pipeline Stage",owner:"Sarah",trigger:"Email 09 sent, Day 2",status:"live"},
+  p11:{t:"Won / Deferred / Lost",type:"Pipeline Stage",owner:"Sarah",trigger:"Client decision received",status:"live"},
+
+  v1:{t:"Today's Pipeline",type:"CRM View",owner:"Sarah",trigger:"Filtered: Next Action Date = today",status:"live"},
+  v2:{t:"Full Pipeline (Kanban)",type:"CRM View",owner:"Sarah",trigger:"Always available",status:"live"},
+  v3:{t:"Awaiting Sarah",type:"CRM View",owner:"Sarah",trigger:"Contacts needing manual action",status:"live"},
+  v4:{t:"Discovery Calendar",type:"CRM View",owner:"Sarah",trigger:"Synced from scheduler",status:"live"},
+  v5:{t:"My Contacts",type:"CRM View",owner:"Sarah",trigger:"Always available",status:"live"},
+  gm:{t:"Gmail Chrome Extension",type:"Integration",owner:"Sarah",trigger:"Email sent/received",status:"live",note:"Pulls email activity into the CRM timeline automatically."},
+  ms:{t:"Meeting Scheduler",type:"Integration",owner:"Sarah",trigger:"Call booked",status:"live",note:"Drops booked calls directly into Discovery Booked."},
+
+  d1:{t:"Dispute",type:"Pause Trigger",owner:"Sarah",trigger:"Reply disputes charge",status:"live",note:"Use Dispute / Resolution template. Ask for line item + concern. Reply within 2 business days."},
+  d2:{t:"Missing PO",type:"Pause Trigger",owner:"Sarah",trigger:"Reply cites missing PO",status:"live",note:"Use AP Process / PO Required template. Reissue invoice with PO ref."},
+  d3:{t:"Promised Date",type:"Pause Trigger",owner:"Sarah",trigger:"Reply gives payment date",status:"live",note:"Use Payment Promise Confirmation. Single follow-up at the promised date only."},
+  d4:{t:"Partial Payment",type:"Pause Trigger",owner:"Sarah",trigger:"Partial payment received",status:"live",note:"Use Partial Payment / Balance template. Re-enter cadence for remaining balance."},
+  d5:{t:"Wrong Contact",type:"Pause Trigger",owner:"Sarah",trigger:"Reply from wrong person",status:"live",note:"Forward to correct AP contact. Log new contact in Notes column."},
+
+  e1:{t:"Email 01 — Warm Contact",type:"Email Template",owner:"Sarah",trigger:"→ Contacted (Warm)",status:"live",note:"Template file: Lightweight CRM/Email Templates/01-warm-contact.md"},
+  e2:{t:"Email 02 — Qualified Outbound",type:"Email Template",owner:"Sarah",trigger:"→ Qualified Outbound",status:"live",note:"Template file: Lightweight CRM/Email Templates/02-qualified-outbound.md"},
+  e3:{t:"Email 03 — Warm Referral",type:"Email Template",owner:"Sarah",trigger:"→ Contacted (Warm)",status:"live",note:"Template file: Lightweight CRM/Email Templates/03-warm-referral.md"},
+  e4:{t:"Email 04 — Inquiry Received",type:"Email Template",owner:"Sarah",trigger:"→ Inquiry",status:"live",note:"Template file: Lightweight CRM/Email Templates/04-inquiry-received.md"},
+  e5:{t:"Email 05 — Inquiry Not Booked",type:"Email Template",owner:"Sarah",trigger:"Inquiry → Inquiry, Day 4 reminder",status:"live",note:"Template file: Lightweight CRM/Email Templates/05-inquiry-not-booked.md"},
+  e6:{t:"Email 06 — Discovery Confirmation",type:"Email Template",owner:"Sarah",trigger:"→ Discovery Booked",status:"live",note:"Template file: Lightweight CRM/Email Templates/06-discovery-confirmation.md"},
+  e7:{t:"Email 07 — Discovery Summary",type:"Email Template",owner:"Sarah",trigger:"→ Discovery Complete",status:"live",note:"Template file: Lightweight CRM/Email Templates/07-discovery-summary.md"},
+  e8:{t:"Email 08 — Proposal",type:"Email Template",owner:"Sarah",trigger:"→ Proposal Sent",status:"live",note:"Template file: Lightweight CRM/Email Templates/08-proposal.md"},
+  e9:{t:"Email 09 — Decision Follow-up",type:"Email Template",owner:"Sarah",trigger:"Proposal Sent → Decision Pending, Day 2",status:"live",note:"Template file: Lightweight CRM/Email Templates/09-decision-followup.md"},
+  e10:{t:"Email 10 — Close the Loop",type:"Email Template",owner:"Sarah",trigger:"→ Decision Pending, final",status:"live",note:"Template file: Lightweight CRM/Email Templates/10-close-the-loop.md"},
+
+  i0:{t:"Invoice Sent",type:"Invoice Stage",owner:"Sarah",trigger:"Day 0",status:"live",tier:"soft"},
+  i1:{t:"Pre-Due Reminder",type:"Invoice Stage",owner:"Sarah",trigger:"Day -3",status:"live",tier:"soft"},
+  i2:{t:"Due-Date Reminder",type:"Invoice Stage",owner:"Sarah",trigger:"Day 0",status:"live",tier:"soft"},
+  i3:{t:"First Overdue",type:"Invoice Stage",owner:"Sarah",trigger:"Day +3",status:"live",tier:"firm"},
+  i4:{t:"Firm Follow-Up",type:"Invoice Stage",owner:"Sarah",trigger:"Day +7 · Email + SMS",status:"live",tier:"firm"},
+  i5:{t:"Manager Escalation",type:"Invoice Stage",owner:"Sarah",trigger:"Day +14 · Email + Phone — human review required",status:"live",tier:"hard"},
+  i6:{t:"Formal Final Notice",type:"Invoice Stage",owner:"Sarah",trigger:"Day +30 · Email + SMS + Phone — human review required",status:"live",tier:"hard"},
+  i7:{t:"Pre-Collections Demand",type:"Invoice Stage",owner:"Sarah",trigger:"Day +45 · Email + Certified Mail — human review required",status:"live",tier:"hard"},
+  i8:{t:"Internal Collections Review",type:"Invoice Stage",owner:"Sarah",trigger:"Day +60, internal only",status:"live",tier:"hard",note:"No customer email. Decision task: refer to collections, write off, or hold."},
+
+  n1:{t:"Signup",type:"Nurture",owner:"Sarah",trigger:"Subscription source",status:"live"},
+  n2:{t:"Week 1 — Brand Strategy",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n3:{t:"Week 2 — Content",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n4:{t:"Week 3 — Visual Identity",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n5:{t:"Week 4 — Audience",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n6:{t:"Week 5 — Pricing",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n7:{t:"Week 6 — Video",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n8:{t:"Week 7 — Trust",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n9:{t:"Week 8 — Consistency",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n10:{t:"Week 9 — Storytelling",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n11:{t:"Week 10 — Conversion",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n12:{t:"Week 11 — Loyalty",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send",status:"live"},
+  n13:{t:"Week 12 — What's Next",type:"Nurture Email",owner:"Sarah",trigger:"Weekly send, cycle re-entry",status:"live"},
+
+  inquiry:{t:"Re-entry → Inquiry",type:"Branch",owner:"Sarah",trigger:"Nurture reader inquires",status:"live",note:"Routes back into Stage 2, CRM pipeline stage: Inquiry."},
+
+  o1:{t:"Invoice Cadence System",type:"Outcome",owner:"Sarah",trigger:"Contact reaches Won",status:"live",note:"See Path B above."},
+  o2:{t:"Past Client Reactivation",type:"Outcome",owner:"Sarah",trigger:"60 days post-project completion",status:"live",note:"Contact enters the Reactivation list."},
+  o3:{t:"Referrals",type:"Outcome",owner:"Sarah",trigger:"Happy client refers",status:"live",note:"Enters CRM as a Warm Referral (Stage 2)."},
+  o4:{t:"Testimonials",type:"Outcome",owner:"Sarah",trigger:"Post-project ask",status:"draft",note:"Written / video testimonials captured for the marketing flywheel."},
+  o5:{t:"Repeat Work",type:"Outcome",owner:"Sarah",trigger:"Past client returns",status:"live",note:"Becomes a new opportunity in the CRM."}
+};
+
+function mkNode(id){
+  const d=D[id];
+  const tierAttr = d.tier ? ` data-tier="${d.tier}"` : '';
+  const badge = d.trigger && (id.startsWith('i')||id.startsWith('n')||id.startsWith('e')) ? `<span class="badge">${id.toUpperCase()}</span><br>` : '';
+  return `<div class="node"${tierAttr} onclick="openPanel('${id}')"><div class="t">${badge}${d.t}</div><div class="s">${d.trigger||''}</div></div>`;
+}
+function fill(elId, ids){ document.getElementById(elId).innerHTML = ids.map(mkNode).join(''); }
+function fillArrowRow(elId, ids){
+  document.getElementById(elId).innerHTML = ids.map((id,i)=> mkNode(id) + (i<ids.length-1?'<span class="arrow">→</span>':'')).join('');
+}
+
+fill('leadGrid', ['wi','ref','org','out']);
+fillArrowRow('pipelineRow', ['p1','p2','p3','p4','p5','p6','p7','p8','p9','p10','p11']);
+fill('toolsRow', ['v1','v2','v3','v4','v5','gm','ms']);
+fill('pauseRowCrm', ['d1','d2','d3','d4','d5']);
+fill('emailStrip', ['e1','e2','e3','e4','e5','e6','e7','e8','e9','e10']);
+fill('invoiceStrip', ['i0','i1','i2','i3','i4','i5','i6','i7','i8']);
+fill('pauseRowInvoice', ['d1','d2','d3','d4','d5']);
+fill('nurtureStrip', ['n1','n2','n3','n4','n5','n6','n7','n8','n9','n10','n11','n12','n13']);
+fill('outcomesGrid', ['o1','o2','o3','o4','o5']);
+
+function openPanel(id){
+  const d=D[id]; if(!d) return;
+  document.getElementById('panelBody').innerHTML = `
+    <div class="status ${d.status}">${d.status.toUpperCase()}</div>
+    <h2>${d.t}</h2>
+    <div class="row"><div class="k">Type</div><div class="v">${d.type}</div></div>
+    <div class="row"><div class="k">Owner</div><div class="v">${d.owner||'—'}</div></div>
+    <div class="row"><div class="k">Triggers on</div><div class="v">${d.trigger||'—'}</div></div>
+    ${d.note?`<div class="row"><div class="k">Notes</div><div class="v">${d.note}</div></div>`:''}
+    <div class="src">📄 Lightweight CRM/ — source file</div>`;
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+}
+function toggleDetail(){
+  document.body.classList.toggle('detail-on');
+  document.getElementById('detailToggle').classList.toggle('on');
+}
+document.body.classList.add('detail-on');
+document.getElementById('detailToggle').classList.add('on');
+</script>
+</body>
+</html>
